@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ang.Sensi — sensitivity generator</title>
+<meta name="description" content="Generate sensitivity settings for mobile shooter games, tuned to your playstyle and grip.">
+<meta name="theme-color" content="#101310">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-32.png" sizes="32x32">
+<link rel="icon" href="icon-16.png" sizes="16x16">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ang.Sensi">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0a0a;
+    --panel:#1c1212;
+    --panel-2:#241616;
+    --border:#3a2020;
+    --amber:#e5231f;
+    --amber-deep:#a8140f;
+    --teal:#e3a94d;
+    --text:#f3ebea;
+    --text-muted:#a08787;
+    --font-display:'Chakra Petch', sans-serif;
+    --font-body:'IBM Plex Sans', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0; color:var(--text);
+    font-family:var(--font-body);
+  }
+  html{
+    background:var(--bg);
+  }
+  body{
+    min-height:100vh;
+    display:flex; justify-content:center;
+    padding:calc(28px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+    background:
+      radial-gradient(ellipse 480px 380px at 12% 8%, rgba(229,35,31,0.40), transparent 60%),
+      radial-gradient(ellipse 420px 420px at 92% 18%, rgba(227,169,77,0.22), transparent 60%),
+      radial-gradient(ellipse 520px 460px at 50% 100%, rgba(229,35,31,0.30), transparent 65%),
+      var(--bg);
+    background-repeat:no-repeat;
+  }
+  .app{ width:100%; max-width:430px; }
+
+  .brand{ display:flex; align-items:center; gap:14px; margin-bottom:28px; }
+  .mark{ width:44px; height:44px; flex:none; filter:drop-shadow(0 0 14px rgba(229,35,31,0.65)); }
+  .mark svg{ width:100%; height:100%; display:block; }
+  h1{
+    font-family:var(--font-display); font-weight:600; font-size:24px;
+    letter-spacing:0.02em; margin:0; color:var(--text);
+  }
+  .tagline{
+    font-family:var(--font-mono); font-size:12px; color:var(--text-muted);
+    margin:2px 0 0; letter-spacing:0.03em;
+  }
+
+  .panel{
+    background:rgba(40,20,20,0.35); border:1px solid rgba(255,255,255,0.09);
+    border-radius:16px; padding:18px 16px; margin-bottom:16px;
+    backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+    box-shadow:0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.07);
+  }
+  .field + .field{ margin-top:16px; }
+  .field-label{
+    display:block; font-family:var(--font-display); font-weight:500;
+    font-size:13px; letter-spacing:0.06em; color:var(--text-muted);
+    margin-bottom:8px;
+  }
+  .segmented{
+    display:flex; flex-wrap:wrap; gap:6px;
+  }
+  .seg-btn{
+    flex:1 1 auto; min-width:64px; appearance:none; cursor:pointer;
+    background:rgba(255,255,255,0.04); color:var(--text-muted); border:1px solid rgba(255,255,255,0.09);
+    border-radius:9px; font-family:var(--font-body); font-weight:500;
+    font-size:13px; padding:10px 4px;
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  }
+  .seg-btn.active{
+    background:linear-gradient(160deg, var(--amber), var(--amber-deep));
+    color:#f8eaea; border-color:rgba(255,255,255,0.25);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.35), 0 4px 16px rgba(229,35,31,0.4);
+  }
+  .seg-btn:focus-visible{ outline:2px solid var(--teal); outline-offset:-2px; }
+
+  .select-wrap{ position:relative; }
+  .select-wrap::after{
+    content:'▾'; position:absolute; right:14px; top:50%; transform:translateY(-50%);
+    color:var(--text-muted); font-size:12px; pointer-events:none;
+  }
+  .select-wrap select{
+    width:100%; appearance:none; -webkit-appearance:none; -moz-appearance:none;
+    background:rgba(255,255,255,0.04); color:var(--text); border:1px solid rgba(255,255,255,0.09);
+    border-radius:9px; padding:11px 32px 11px 12px;
+    font-family:var(--font-body); font-weight:500; font-size:13px;
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  }
+  .select-wrap select:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+
+  .generate-btn{
+    width:100%; appearance:none; border:1px solid rgba(255,255,255,0.25); cursor:pointer;
+    background:linear-gradient(160deg, var(--amber), var(--amber-deep)); color:#f8eaea;
+    font-family:var(--font-display); font-weight:600; font-size:15px;
+    letter-spacing:0.03em; padding:15px; margin-bottom:18px;
+    clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 28px rgba(229,35,31,0.4);
+  }
+  .generate-btn:active{ background:var(--amber-deep); }
+  .generate-btn:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+  .generate-btn svg{ width:16px; height:16px; }
+
+  .readout{
+    background:rgba(40,20,20,0.35); border:1px solid rgba(255,255,255,0.09);
+    border-radius:16px; padding:6px 16px; margin-bottom:12px;
+    backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+    box-shadow:0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.07);
+  }
+  .row{
+    display:flex; align-items:center; gap:12px;
+    padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.07);
+  }
+  .row:last-child{ border-bottom:none; }
+  .ramp{ display:flex; flex-direction:column-reverse; gap:2px; flex:none; }
+  .ramp i{ width:10px; height:3px; border-radius:1px; background:var(--border); display:block; }
+  .ramp i.on{ background:var(--teal); }
+  .row-label{ flex:1; font-size:13px; color:var(--text-muted); }
+  .row-value{
+    font-family:var(--font-mono); font-weight:600; font-size:18px; color:var(--text);
+    min-width:36px; text-align:right;
+  }
+
+  .extras{
+    display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; margin-bottom:20px;
+  }
+  .extra-card{
+    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);
+    border-radius:12px; padding:10px 8px; text-align:center;
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  }
+  .extra-label{ font-size:11px; color:var(--text-muted); margin:0 0 4px; line-height:1.3; }
+  .extra-value{
+    font-family:var(--font-mono); font-weight:600; font-size:18px; margin:0; color:var(--teal);
+  }
+
+  .ghost-btn{
+    width:100%; appearance:none; cursor:pointer;
+    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+    color:var(--text); font-family:var(--font-body); font-weight:500; font-size:14px;
+    padding:12px; border-radius:10px;
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  }
+  .ghost-btn:active{ background:rgba(255,255,255,0.09); }
+  .ghost-btn:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+  .copy-msg{
+    font-size:12px; color:var(--teal); text-align:center; min-height:16px; margin:8px 0 0;
+  }
+
+  .install-tip{
+    margin-top:20px; padding:12px 14px; border-radius:14px;
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  }
+  .install-tip p{ font-size:12.5px; color:var(--text-muted); margin:0 0 8px; line-height:1.5; }
+
+  .disclaimer{ margin-top:24px; }
+  .disclaimer p{ font-size:11.5px; color:var(--text-muted); line-height:1.6; text-align:center; }
+
+  @media (prefers-reduced-motion:no-preference){
+    .seg-btn, .generate-btn, .ghost-btn{ transition:background-color 120ms ease; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="brand">
+    <div class="mark" aria-hidden="true">
+      <img src="icon-192.png" alt="" style="width:100%;height:100%;border-radius:50%;display:block;">
+    </div>
+    <div>
+      <h1>Ang.Sensi</h1>
+      <p class="tagline">sensitivity readout · dialed for headshots</p>
+    </div>
+  </header>
+
+  <section class="panel controls">
+    <div class="field">
+      <span class="field-label">Playstyle</span>
+      <div class="segmented" data-group="playstyle" role="group" aria-label="Playstyle">
+        <button type="button" class="seg-btn" data-value="rusher">Rusher</button>
+        <button type="button" class="seg-btn active" data-value="balanced">Balanced</button>
+        <button type="button" class="seg-btn" data-value="sniper">Sniper</button>
+        <button type="button" class="seg-btn" data-value="pro">Pro</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Grip</span>
+      <div class="segmented" data-group="grip" role="group" aria-label="Grip">
+        <button type="button" class="seg-btn" data-value="2finger">2-finger</button>
+        <button type="button" class="seg-btn active" data-value="3claw">3-claw</button>
+        <button type="button" class="seg-btn" data-value="4claw">4-claw</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Device</span>
+      <div class="select-wrap">
+        <select id="deviceSelect">
+          <option value="iphone">iPhone (all models)</option>
+          <option value="samsung">Samsung Galaxy</option>
+          <option value="pixel">Google Pixel</option>
+          <option value="oneplus">OnePlus</option>
+          <option value="xiaomi">Xiaomi / Redmi</option>
+          <option value="poco">Poco</option>
+          <option value="realme">Realme</option>
+          <option value="oppo">Oppo</option>
+          <option value="vivo">Vivo</option>
+          <option value="motorola">Motorola</option>
+          <option value="other">Other Android</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <button id="generateBtn" class="generate-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/>
+    </svg>
+    Generate settings
+  </button>
+
+  <section class="readout" id="readout" aria-live="polite"></section>
+  <div class="extras" id="extras"></div>
+
+  <button id="copyBtn" class="ghost-btn">Copy settings</button>
+  <p class="copy-msg" id="copyMsg" aria-live="polite"></p>
+
+  <div class="install-tip" id="installTip" hidden>
+    <p id="installText"></p>
+    <button id="installBtn" class="ghost-btn" hidden>Install app</button>
+  </div>
+
+  <footer class="disclaimer">
+    <p>Fan-made tool, not affiliated with or endorsed by Garena or Free Fire. Sensitivity is personal — treat this as a starting point, then fine-tune in game.</p>
+  </footer>
+</div>
+
+<script>
+  var ranges = {
+    rusher:   { general:[170,200], redDot:[170,200], scope2x:[140,180], scope4x:[100,150], sniperScope:[2,30],  freeLook:[170,200], dpi:[500,800], buttonSize:[35,50] },
+    balanced: { general:[140,180], redDot:[140,180], scope2x:[130,170], scope4x:[110,160], sniperScope:[40,90], freeLook:[150,190], dpi:[400,600], buttonSize:[25,40] },
+    sniper:   { general:[110,150], redDot:[110,150], scope2x:[120,160], scope4x:[130,180], sniperScope:[70,130],freeLook:[140,180], dpi:[350,500], buttonSize:[15,28] },
+    pro:      { general:[180,200], redDot:[180,200], scope2x:[160,190], scope4x:[140,170], sniperScope:[90,130],freeLook:[180,200], dpi:[450,650], buttonSize:[28,38] }
+  };
+  var gripBoost = { '2finger':0, '3claw':6, '4claw':12 };
+  var iphoneDpi = { rusher:[80,120], balanced:[60,100], sniper:[40,80], pro:[75,110] };
+  var deviceBoost = {
+    iphone:8, samsung:6, pixel:6, oneplus:5, xiaomi:3, poco:3,
+    realme:2, oppo:2, vivo:2, motorola:0, other:0
+  };
+  var state = { playstyle:'balanced', grip:'3claw', device:'iphone' };
+  var lastValues = null;
+
+  function randIn(min,max){ return Math.round(min + Math.random()*(max-min)); }
+  function clamp(v){ return Math.max(1, Math.min(200, v)); }
+  function clampButton(v){ return Math.max(1, Math.min(50, v)); }
+
+  function rampDots(level){
+    var out = '';
+    for (var i=1;i<=5;i++){ out += '<i class="' + (i<=level?'on':'') + '"></i>'; }
+    return out;
+  }
+
+  function generate(){
+    var r = ranges[state.playstyle];
+    var boost = gripBoost[state.grip] + deviceBoost[state.device];
+    var rows = [
+      { label:'General',       level:1, value: clamp(randIn(r.general[0], r.general[1]) + boost) },
+      { label:'Red dot / 1x',  level:2, value: clamp(randIn(r.redDot[0], r.redDot[1]) + boost) },
+      { label:'2x scope',      level:3, value: clamp(randIn(r.scope2x[0], r.scope2x[1]) + boost) },
+      { label:'4x scope',      level:4, value: clamp(randIn(r.scope4x[0], r.scope4x[1]) + boost) },
+      { label:'Sniper scope',  level:5, value: clamp(randIn(r.sniperScope[0], r.sniperScope[1])) }
+    ];
+    var freeLook = clamp(randIn(r.freeLook[0], r.freeLook[1]) + boost);
+    var dpi;
+    if (state.device === 'iphone'){
+      var idr = iphoneDpi[state.playstyle];
+      dpi = Math.max(0, Math.min(120, Math.round(randIn(idr[0], idr[1]) / 5) * 5));
+    } else {
+      dpi = Math.round(randIn(r.dpi[0], r.dpi[1]) / 50) * 50;
+    }
+    var buttonSize = clampButton(randIn(r.buttonSize[0], r.buttonSize[1]));
+
+    var readout = document.getElementById('readout');
+    readout.innerHTML = rows.map(function(row){
+      return '<div class="row"><div class="ramp">' + rampDots(row.level) + '</div>' +
+             '<div class="row-label">' + row.label + '</div>' +
+             '<div class="row-value">' + row.value + '</div></div>';
+    }).join('');
+
+    var extras = document.getElementById('extras');
+    extras.innerHTML =
+      '<div class="extra-card"><p class="extra-label">Free look</p><p class="extra-value">' + freeLook + '</p></div>' +
+      '<div class="extra-card"><p class="extra-label">DPI</p><p class="extra-value">' + dpi + '</p></div>' +
+      '<div class="extra-card"><p class="extra-label">Button size</p><p class="extra-value">' + buttonSize + '</p></div>';
+
+    lastValues = rows.reduce(function(acc,row){ acc[row.label]=row.value; return acc; }, {});
+    lastValues['Free look'] = freeLook;
+    lastValues['DPI'] = dpi;
+    lastValues['Button size'] = buttonSize;
+    document.getElementById('copyMsg').textContent = '';
+  }
+
+  document.querySelectorAll('.segmented').forEach(function(group){
+    group.addEventListener('click', function(e){
+      var btn = e.target.closest('.seg-btn');
+      if (!btn) return;
+      group.querySelectorAll('.seg-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      state[group.dataset.group] = btn.dataset.value;
+      generate();
+    });
+  });
+
+  document.getElementById('deviceSelect').addEventListener('change', function(e){
+    state.device = e.target.value;
+    generate();
+  });
+
+  document.getElementById('generateBtn').addEventListener('click', generate);
+
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    if (!lastValues) return;
+    var text = 'Ang.Sensi settings (' + state.playstyle + ', ' + state.grip + ')\n' +
+      Object.keys(lastValues).map(function(k){ return k + ': ' + lastValues[k]; }).join('\n');
+    var msg = document.getElementById('copyMsg');
+    function ok(){ msg.textContent = 'Copied to clipboard'; }
+    function fail(){
+      try{
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        ok();
+      } catch(e){ msg.textContent = 'Could not copy — select and copy manually'; }
+    }
+    if (navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text).then(ok, fail);
+    } else {
+      fail();
+    }
+  });
+
+  generate();
+
+  // Home-screen install guidance
+  var installTip = document.getElementById('installTip');
+  var installText = document.getElementById('installText');
+  var installBtn = document.getElementById('installBtn');
+  var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  if (!isStandalone){
+    installTip.hidden = false;
+    if (isIOS){
+      installText.textContent = 'Add to your home screen: tap the share icon, then "Add to Home Screen".';
+    } else {
+      installText.textContent = 'Install Ang.Sensi to your home screen for the full app experience.';
+    }
+  }
+
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    installTip.hidden = false;
+    installText.textContent = 'Install Ang.Sensi to your home screen for the full app experience.';
+    installBtn.hidden = false;
+    installBtn.addEventListener('click', function(){
+      e.prompt();
+    }, { once:true });
+  });
+
+  if ('serviceWorker' in navigator && location.protocol !== 'file:'){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){});
+    });
+  }
+</script>
+</body>
+</html>
